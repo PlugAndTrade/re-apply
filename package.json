@@ -1,0 +1,30 @@
+{
+  "name": "re-apply",
+  "version": "0.1.0",
+  "description": "OCaml workflow with Esy",
+  "license": "MIT",
+  "esy": {
+    "build": "refmterr dune build -p #{self.name}",
+    "release": { "bin": "re-apply", "includePackages": [ "root" ] }
+  },
+  "scripts": {
+    "test": "esy x hello",
+    "utop": "esy dune utop src -- -implicit-bindings",
+    "format": "esy dune build @fmt --auto-promote"
+  },
+  "dependencies": {
+    "@opam/bos": "0.2.0",
+    "@opam/dune": "*",
+    "@opam/lwt": "^4.0.0",
+    "@opam/rresult": "0.6.0",
+    "@opam/yaml": "1.0.0",
+    "refmterr": "^3.0.0",
+    "ocaml": "~4.6.0"
+  },
+  "devDependencies": {
+    "@opam/merlin": "^3.0.3",
+    "ocaml": "~4.6.0",
+    "@opam/ocamlformat": "*",
+    "@opam/utop": "*"
+  }
+}

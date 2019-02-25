@@ -1,12 +1,20 @@
 module F = Bos.OS.File
 module D = Bos.OS.Dir
 
-let (<|>) a b =
+let unpack a b =
   match a with
   | Ok x -> x
   | _ -> b
 
+module Infix = struct
+  let (<|>) = unpack
+end
+
+open Infix
+
 let f_exists p = (F.exists p) <|> false
+
+let read_file p = (F.read p) <|> ""
 
 let is_dir p = (D.exists p) <|> false
 

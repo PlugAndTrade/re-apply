@@ -1,5 +1,46 @@
 # re-apply
 
+## Template
+
+```yaml
+resources:
+  - kind: "Namespace"
+    do:
+      - create:
+          name: "$(GIT_BRANCH)"
+  - kind: "Deployment"
+    do:
+      - copy:
+          from: "default"
+          where: "app == storefront"
+          to: "$(GIT_BRANCH)"
+          map:
+            - op: "add"
+              path: "/metadata/annotations/my-annotation"
+              value: "value"
+            - op: "replace"
+              path: "/metadata/labels/app"
+              value: "foobar"
+            - op: "remove"
+              path: "/spec/template/containers/0/livenessProbe"
+              value: "foobar"
+
+  - kind: "Ingress"
+    do:
+      - duplicate:
+          from: "default"
+          where: "app.kubernetes/part-of != storefront"
+          map:
+            - op: "add"
+              path: "/spec/rules[*]/host"
+              value: "$(GIT_BRANCH)-preloaded.bergendahls.se"
+            - op: "replace"
+              path: "/spec/rules[*]/host"
+              value: "$(GIT_BRANCH)-preloaded.bergendahls.se"
+
+
+```
+
 ## Usage
 
 You need Esy, you can install the beta using [npm][]:

@@ -5,10 +5,11 @@
   "license": "MIT",
   "esy": {
     "build": "refmterr dune build -p #{self.name}",
+    "buildsInSource": "_build",
     "release": { "bin": "re-apply", "includePackages": [ "root" ] }
   },
   "scripts": {
-    "test": "esy x hello",
+    "test": "esy x main.exe",
     "utop": "esy dune utop src -- -implicit-bindings",
     "format": "esy dune build @fmt --auto-promote"
   },
@@ -18,8 +19,10 @@
     "@opam/lwt": "^4.0.0",
     "@opam/rresult": "0.6.0",
     "@opam/yaml": "1.0.0",
-    "refmterr": "^3.0.0",
-    "ocaml": "~4.6.0"
+    "@opam/ppx_deriving_yojson": "3.3",
+    "@opam/yojson": "1.5.0",
+    "ocaml": "~4.6.0",
+    "refmterr": "^3.0.0"
   },
   "devDependencies": {
     "@opam/merlin": "^3.0.3",

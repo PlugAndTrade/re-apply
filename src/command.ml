@@ -32,10 +32,12 @@ let rw proc stream =
 let rw_stream stream command =
   Lwt_process.with_process_full command (fun proc -> rw proc stream)
 
-let rw_string ?(sep='\n') data command =
+let rw_string ?(sep='\n') command data =
   let stream = Lwt_stream.of_list (String.split_on_char sep data) in
 
   rw_stream stream command
+
+let escape_string s = Format.sprintf "\"%s\"" s
 
 module Kubectl = struct
   open Infix
@@ -72,6 +74,8 @@ module Kubectl = struct
     | Secret -> "Secret"
     | Service -> "Service"
 
+  let get ?(ns = "default") resource = exe % "get" % (kind_to_string resource) % ("-n=" ^ ns)
+
   let create resource name = exe % "create" % (kind_to_string resource) % name
 
   let delete resource name = exe % "delete" % (kind_to_string resource) % name
@@ -80,7 +84,9 @@ module Kubectl = struct
 
   let with_file cmd = cmd % "-f" % "-"
 
-  let with_output cmd output = cmd % ("-o=" ^ output)
+  let with_output ?(output = "json") cmd = cmd % ("-o=" ^ output)
+
+  let with_selectors selectors cmd = cmd % ("-l=" ^ String.concat "," selectors)
 
   let dry_run cmd = cmd % "--dry-run"
 end

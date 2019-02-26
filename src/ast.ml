@@ -6,10 +6,22 @@ module Conv = struct
     let rec fn = function
       | `Null -> `Null
       | `Bool b -> `Bool b
-      | `Float f -> `Float f | `String value -> `String value
+      | `Float f -> `Float f
+      | `String value -> `String value
       | `A l -> `List (List.map fn l)
       | `O l -> `Assoc (List.map (fun (k, v) -> (k, fn v)) l) in
     fn ezjson
+
+  let to_yaml (json: Yojson.Basic.json) : Yaml.value =
+    let rec fn = function
+      | `Null -> `Null
+      | `Bool b -> `Bool b
+      | `Float f -> `Float f
+      | `Int i -> `String (string_of_int i)
+      | `String value -> `String value
+      | `List l -> `A (List.map fn l)
+      | `Assoc l -> `O (List.map (fun (k,v) -> (k, fn v)) l) in
+    fn json
 end
 
 module Kind = struct
@@ -36,7 +48,7 @@ module Op = struct
     type t = {
       from: string;
       where: string;
-      to_: (string [@name "to"]);
+      to_: string [@key "to"];
       map: Transform.t list;
     } [@@deriving yojson {strict= false}]
   end
@@ -65,7 +77,7 @@ end
 module Resource = struct
   type t = {
     kind: string;
-    do_: (Op.t list [@name "do"]);
+    do_: (Op.t list) [@key "do"];
   } [@@deriving yojson {strict= false}]
 end
 
@@ -86,8 +98,12 @@ let of_yaml path =
   >>| Conv.to_yojson
   >>| of_yojson
   >>| (function
-    | Ok json -> json |> to_yojson |> Yojson.Safe.to_string
-    | Error e -> (Format.sprintf "Error: %s" e))
-  <|> "WTF"
+      | Ok json -> json
+      | Error _ -> default ()
+    )
+  (* >>| (function
+   *   | Ok json -> json |> to_yojson |> Yojson.Safe.to_string
+   *   | Error e -> (Format.sprintf "Error: %s" e))
+   * <|> "WTF" *)
   (* >>| t_of_sexp
    * <|> (make ()) *)

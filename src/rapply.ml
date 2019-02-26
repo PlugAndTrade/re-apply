@@ -1,2 +1,1 @@
-let main () =
-  Interpreter.Shell.seq (Ast.default ())
+let main () = Interpreter.Shell.seq (Ast.default ())

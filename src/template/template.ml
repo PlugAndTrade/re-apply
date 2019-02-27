@@ -1,5 +1,3 @@
-module R = Rresult.R
-module OS = Base.Os
 module Conv = Base.Conv
 module Types = Types
 
@@ -14,15 +12,14 @@ module Env = struct
 
   let interpolate env template =
     let json = to_json env in
-    let m_tmpl =  Mustache.of_string template in
-
+    let m_tmpl = Mustache.of_string template in
     Mustache.render m_tmpl json
 end
 
 let of_yaml path =
-  let args = (Env.add_arg Env.empty ("TEST", "TEST")) in
-  let open R in
-  Fpath.of_string path >>| OS.read_file >>| Env.interpolate args
+  let args = Env.add_arg Env.empty ("TEST", "FOOBARBAZ") in
+  let open Rresult.R in
+  Fpath.of_string path >>| Base.Os.read_file >>| Env.interpolate args
   >>= Yaml.yaml_of_string >>= Yaml.to_json >>| Conv.to_yojson
   >>= fun json ->
   match Types.of_yojson json with

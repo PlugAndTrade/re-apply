@@ -1,0 +1,4 @@
+(library
+ (name k8s)
+ (public_name re-apply.k8s)
+ (libraries base lwt lwt.unix yojson))

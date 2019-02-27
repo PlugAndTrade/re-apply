@@ -15,8 +15,9 @@ module Shell = struct
     in
     let to_yaml item = item |> Conv.to_yaml |> Yaml.to_string_exn in
     let modify item = item |> KSOMod.normalize |> f in
-    Command.read_a get >|= Yojson.Basic.from_string >|= KSOMod.map_items ~f:modify
-    >|= List.map to_yaml >|= String.concat delimter
+    Command.read_a get >|= Yojson.Basic.from_string
+    >|= KSOMod.map_items ~f:modify >|= List.map to_yaml
+    >|= String.concat delimter
 
   let k_copy resource ({from; where; to_; _} : Ast.Op.Copy.t) =
     get_modify ~f:(KSOMod.namespace to_) resource from where
@@ -43,12 +44,15 @@ module Shell = struct
     | None, None, Some dup -> k_dup resource dup
     | _, _, _ -> Lwt.return "multi not implemented"
 
-  let run ({kind; do_;} : Ast.Resource.t) : unit Lwt.t =
+  let run ({kind; do_} : Ast.Resource.t) : unit Lwt.t =
     let kind = Kubectl.kind_of_string_exn kind in
     let ops = List.map (to_kube kind) do_ in
-
-    let yaml = List.fold_left (fun acc op -> acc >>= fun acc -> op >|= (fun op_s -> acc ^ delimter ^ op_s)) (Lwt.return "") ops in
-
+    let yaml =
+      List.fold_left
+        (fun acc op ->
+          acc >>= fun acc -> op >|= fun op_s -> acc ^ delimter ^ op_s )
+        (Lwt.return "") ops
+    in
     yaml >>= Lwt_io.print
 
   let seq ({resources} : Ast.t) : unit Lwt.t =

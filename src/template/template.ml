@@ -16,10 +16,9 @@ module Env = struct
     Mustache.render m_tmpl json
 end
 
-let of_yaml path =
-  let args = Env.add_arg Env.empty ("TEST", "FOOBARBAZ") in
+let of_yaml ?(env = Env.empty) path =
   let open Rresult.R in
-  Fpath.of_string path >>| Base.Os.read_file >>| Env.interpolate args
+  Fpath.of_string path >>| Base.Os.read_file >>| Env.interpolate env
   >>= Yaml.yaml_of_string >>= Yaml.to_json >>| Conv.to_yojson
   >>= fun json ->
   match Types.of_yojson json with

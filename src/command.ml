@@ -60,12 +60,12 @@ module Kubectl = struct
     | None -> failwith (Format.sprintf "unknown k8s kind %s" s)
 
   let kind_to_string = function
-    | Configmap -> "Configmap"
-    | Deployment -> "Deployment"
-    | Ingress -> "Ingress"
-    | Namespace -> "Namespace"
-    | Secret -> "Secret"
-    | Service -> "Service"
+    | Configmap -> "configmap"
+    | Deployment -> "deployment"
+    | Ingress -> "ingress"
+    | Namespace -> "namespace"
+    | Secret -> "secret"
+    | Service -> "service"
 
   let get ?(ns = "default") resource =
     exe % "get" % kind_to_string resource % ("-n=" ^ ns)

@@ -27,31 +27,4 @@ module Json = struct
   let remove k = update k (fun _ -> None)
 
   let get = Yojson.Basic.Util.member
-
-  let test () =
-    let json =
-      Yojson.Basic.from_string
-        "{\"kind\": \"deployment\", \"metadata\": {\"namespace\": \"foo\"}}"
-    in
-    let j =
-      update "metadata"
-        (function
-          | Some m ->
-              Some (update "namespace" (fun _ -> Some (`String "test")) m)
-          | None -> Some (`Assoc []))
-        json
-    in
-    print_endline (Yojson.Basic.pretty_to_string j)
-
-  let test2 () =
-    let json = Yojson.Basic.from_string "{}" in
-    let j =
-      update "metadata"
-        (function
-          | Some m ->
-              Some (update "namespace" (fun _ -> Some (`String "test")) m)
-          | None -> Some (`Assoc []))
-        json
-    in
-    print_endline (Yojson.Basic.pretty_to_string j)
 end

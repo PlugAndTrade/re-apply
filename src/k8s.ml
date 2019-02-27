@@ -50,10 +50,9 @@ module KSOMod = struct
     |> remove_fields
          ["metadata"; "annotations"]
          ["kubectl.kubernetes.io/last-applied-configuration"]
-
-    |> add_fields
-         ["metadata"; "labels"]
-         [("app.kubernetes/part-of", `String "re-apply")]
+    |> update_in ~f:(assign "labels" (`Assoc [])) ["metadata"]
+    |> add_fields ["metadata"; "labels"]
+         [("app.kubernetes/belongs-to", `String "re-apply")]
 end
 
 module Kubectl = struct

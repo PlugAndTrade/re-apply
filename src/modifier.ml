@@ -24,6 +24,8 @@ module Json = struct
 
   let add k v = update k (fun _ -> Some v)
 
+  let assign k v = update k (function Some v' -> Some v' | None -> Some v)
+
   let remove k = update k (fun _ -> None)
 
   let get = Yojson.Basic.Util.member

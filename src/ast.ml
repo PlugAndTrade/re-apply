@@ -15,7 +15,7 @@ module Conv = struct
 
   let to_yaml (json : Yojson.Basic.json) : Yaml.value =
     let rec fn = function
-      | `Null -> `Null
+      | `Null -> `String "null"
       | `Bool b -> `Bool b
       | `Float f -> `Float f
       | `Int i -> `String (string_of_int i)
@@ -47,7 +47,11 @@ module Op = struct
   end
 
   module Duplicate = struct
-    type t = {from: string; where: string; map: Transform.t list}
+    type t =
+      { from: string
+      ; where: string
+      ; map: Transform.t list
+      ; name_prefix: string [@key "namePrefix"] }
     [@@deriving yojson {strict= false}]
   end
 
@@ -72,15 +76,7 @@ type t = {resources: Resource.t list} [@@deriving yojson {strict= false}]
 let default () = {resources= []}
 
 let of_yaml path =
-  let open OS.Infix in
   let open R in
   Fpath.of_string path >>| OS.read_file >>= Yaml.yaml_of_string
   >>= Yaml.to_json >>| Conv.to_yojson >>| of_yojson
   >>| function Ok json -> json | Error _ -> default ()
-
-(* >>| (function
-   *   | Ok json -> json |> to_yojson |> Yojson.Safe.to_string
-   *   | Error e -> (Format.sprintf "Error: %s" e))
-   * <|> "WTF" *)
-(* >>| t_of_sexp
-   * <|> (make ()) *)

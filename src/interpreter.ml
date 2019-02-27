@@ -65,7 +65,7 @@ module Shell = struct
       |> Kubectl.with_file
     in
     let delimter = "---\n" in
-    let to_yaml item = item |> Ast.Conv.to_yaml |> Yaml.to_string_exn in
+    let to_yaml item = item |> Conv.to_yaml |> Yaml.to_string_exn in
     let modify item = item |> K8s.normalize |> f in
     Command.read_a get >|= Yojson.Basic.from_string >|= K8s.map_items ~f:modify
     >|= List.map to_yaml >|= String.concat delimter >>= Lwt_io.print
@@ -76,12 +76,24 @@ module Shell = struct
   let k_dup resource ({name_prefix; from; where} : Ast.Op.Duplicate.t) =
     get_modify ~f:(K8s.prefix_name name_prefix) resource from where
 
+  let k_create resource ({name} : Ast.Op.Create.t) =
+    let create =
+      name |> Kubectl.create resource
+      |> Kubectl.with_output ~output:"json"
+      |> Kubectl.dry_run
+    in
+    let modify json =
+      json |> K8s.normalize |> Conv.to_yaml |> Yaml.to_string_exn
+    in
+    ignore (print_endline (Command.pp create)) ;
+    Command.read_a create >|= Yojson.Basic.from_string >|= modify
+    >>= Lwt_io.print
+
   let to_kube (resource : Kubectl.kind) ({copy; create; duplicate} : Ast.Op.t)
       : unit Lwt.t =
     match (copy, create, duplicate) with
     | Some cp, None, None -> k_copy resource cp
-    | None, Some cr, None ->
-        Lwt.return "Create not implemented" >>= Lwt_io.print
+    | None, Some cr, None -> k_create resource cr
     | None, None, Some dup -> k_dup resource dup
     | _, _, _ -> Lwt.return "multi not implemented" >>= Lwt_io.print
 

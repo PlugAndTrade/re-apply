@@ -1,6 +1,3 @@
-module R = Rresult.R
-module OS = Os
-
 module Kind = struct
   type t = Configmap | Deployment | Ingress | Namespace | Secret | Service
   [@@deriving yojson {strict= false}]
@@ -49,12 +46,3 @@ end
 type t = {resources: Resource.t list} [@@deriving yojson {strict= false}]
 
 let default () = {resources= []}
-
-let of_yaml path =
-  let open R in
-  Fpath.of_string path >>| OS.read_file >>= Yaml.yaml_of_string
-  >>= Yaml.to_json >>| Conv.to_yojson
-  >>= fun json ->
-  match of_yojson json with
-  | Ok json -> Rresult.R.return json
-  | Error e -> Rresult.Error (`Msg e)

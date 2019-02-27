@@ -1,6 +1,6 @@
 (library
  (name lib)
  (public_name re-apply)
- (libraries lwt lwt.unix bos rresult yaml)
+ (libraries lwt lwt.unix bos rresult yaml template)
  (preprocess
   (pps ppx_deriving_yojson)))

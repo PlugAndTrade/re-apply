@@ -1,5 +1,5 @@
 {
-  "checksum": "b1ea51cc91673ef2d4e3367c2d7e4a61",
+  "checksum": "5920a98d03d18b49767b7d6f9837c0e4",
   "root": "re-apply@link:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#d488cd9321cd5036bd36ec96744ce78c5d45fc49@d41d8cd9": {
@@ -46,6 +46,7 @@
         "@opam/yojson@opam:1.5.0@890db858", "@opam/yaml@opam:1.0.0@5c60fed9",
         "@opam/rresult@opam:0.6.0@4b185e72",
         "@opam/ppx_deriving_yojson@opam:3.3@80aab5d8",
+        "@opam/mustache@opam:3.0.2@4312c33e",
         "@opam/lwt@opam:4.1.0@111fc2bf", "@opam/dune@opam:1.7.2@52ecbb97",
         "@opam/cmdliner@opam:1.0.3@96d31520", "@opam/bos@opam:0.2.0@df49e63f"
       ],
@@ -831,6 +832,32 @@
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [ "ocaml@4.6.10@d41d8cd9" ]
+    },
+    "@opam/mustache@opam:3.0.2@4312c33e": {
+      "id": "@opam/mustache@opam:3.0.2@4312c33e",
+      "name": "@opam/mustache",
+      "version": "opam:3.0.2",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://opam.ocaml.org/cache/md5/36/36d6e8962432dc42c0691e27a7ec08f1#md5:36d6e8962432dc42c0691e27a7ec08f1",
+          "archive:https://github.com/rgrinberg/ocaml-mustache/archive/v3.0.2.zip#md5:36d6e8962432dc42c0691e27a7ec08f1"
+        ],
+        "opam": {
+          "name": "mustache",
+          "version": "3.0.2",
+          "path": "esy.lock/opam/mustache.3.0.2"
+        }
+      },
+      "overrides": [],
+      "dependencies": [
+        "ocaml@4.6.10@d41d8cd9", "@opam/menhir@opam:20181113@0c8257a8",
+        "@opam/jbuilder@opam:transition@58bdfe0a",
+        "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [
+        "ocaml@4.6.10@d41d8cd9", "@opam/menhir@opam:20181113@0c8257a8"
+      ]
     },
     "@opam/merlin-extend@opam:0.3@e1fc0d08": {
       "id": "@opam/merlin-extend@opam:0.3@e1fc0d08",

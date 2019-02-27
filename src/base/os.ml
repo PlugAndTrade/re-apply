@@ -29,18 +29,14 @@ let read_dir_rec ~fn dir =
 
 module Git = struct
   open Bos.Cmd
+
   let git = Bos.Cmd.v "git"
 
-  let run cmd =
-    Bos.OS.Cmd.(run_out cmd |> to_lines)
+  let run cmd = Bos.OS.Cmd.(run_out cmd |> to_lines)
 
-  let user () =
-    run (git % "config" % "user.name")
+  let user () = run (git % "config" % "user.name")
 
-  let current_branch () =
-    run (git % "symbolic-ref" % "--short" % "-q" % "HEAD")
+  let current_branch () = run (git % "symbolic-ref" % "--short" % "-q" % "HEAD")
 
-  let current_commit () =
-    run (git % "rev-parse" % "HEAD")
-
+  let current_commit () = run (git % "rev-parse" % "HEAD")
 end

@@ -1,0 +1,6 @@
+(library
+ (name template)
+ (public_name re-apply.template)
+ (libraries base mustache yaml)
+ (preprocess
+  (pps ppx_deriving_yojson)))

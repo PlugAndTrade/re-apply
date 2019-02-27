@@ -18,6 +18,7 @@
     "@opam/cmdliner": "1.0.3",
     "@opam/dune": "*",
     "@opam/lwt": "^4.0.0",
+    "@opam/mustache": "3.0.2",
     "@opam/ppx_deriving_yojson": "3.3",
     "@opam/rresult": "0.6.0",
     "@opam/yaml": "1.0.0",

@@ -19,17 +19,21 @@ let default_cmd =
   , Term.info "rapply" ~version:"0.0" ~doc ~sdocs ~exits ~man )
 
 let run path =
-  let p = match Lib.Rapply.run path with
-  | Ok p -> p
-  | Error (`Msg e) -> Lwt_io.print (Format.sprintf "Failed with %s" e) in
-
+  let p =
+    match Lib.Rapply.run path with
+    | Ok p -> p
+    | Error (`Msg e) -> Lwt_io.print (Format.sprintf "Failed with %s" e)
+  in
   Lwt_main.run p
 
 let cmd =
   let path =
     let doc = "template path" in
-    Arg.(value & (opt file "./" & (info ["t"; "template"] ~docv:"DIR" ~doc)))
-  in Term.(const run $ path) , Term.info "mod" ~doc:"run template doc" ~sdocs:Manpage.s_common_options ~exits:Term.default_exits ~man:help
+    Arg.(value & opt file "./" & info ["t"; "template"] ~docv:"DIR" ~doc)
+  in
+  ( Term.(const run $ path)
+  , Term.info "mod" ~doc:"run template doc" ~sdocs:Manpage.s_common_options
+      ~exits:Term.default_exits ~man:help )
 
 let cmds = [cmd]
 

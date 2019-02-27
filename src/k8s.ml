@@ -1,5 +1,5 @@
 module KSOMod = struct
-  open Modifier.Json
+  open Base.Modifier.Json
 
   let name n json =
     update "metadata"
@@ -31,7 +31,7 @@ module KSOMod = struct
 
   let map_items ~f json =
     let open Yojson.Basic in
-    json |> Modifier.Json.get "items" |> Util.map f |> Util.to_list
+    json |> get "items" |> Util.map f |> Util.to_list
 
   let remove_fields path fields json =
     List.fold_left

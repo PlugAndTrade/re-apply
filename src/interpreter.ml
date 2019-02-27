@@ -1,8 +1,10 @@
 module Shell = struct
-  type t = Command.t
-
+  open Template.Types
+  open Base
   open K8s
   open Lwt.Infix
+
+  type t = Command.t
 
   let delimter = "---\n"
 
@@ -18,13 +20,13 @@ module Shell = struct
     >|= KSOMod.map_items ~f:modify >|= List.map to_yaml
     >|= String.concat delimter
 
-  let k_copy resource ({from; where; to_; _} : Ast.Op.Copy.t) =
+  let k_copy resource ({from; where; to_; _} : Op.Copy.t) =
     get_modify ~f:(KSOMod.namespace to_) resource from where
 
-  let k_dup resource ({name_prefix; from; where; _} : Ast.Op.Duplicate.t) =
+  let k_dup resource ({name_prefix; from; where; _} : Op.Duplicate.t) =
     get_modify ~f:(KSOMod.prefix_name name_prefix) resource from where
 
-  let k_create resource ({name} : Ast.Op.Create.t) =
+  let k_create resource ({name} : Op.Create.t) =
     let create =
       name |> Kubectl.create resource
       |> Kubectl.with_output ~output:"json"
@@ -35,15 +37,15 @@ module Shell = struct
     in
     Command.read_a create >|= Yojson.Basic.from_string >|= modify
 
-  let to_kube (resource : Kubectl.kind) ({copy; create; duplicate} : Ast.Op.t)
-      : string Lwt.t =
+  let to_kube (resource : Kubectl.kind) ({copy; create; duplicate} : Op.t) :
+      string Lwt.t =
     match (copy, create, duplicate) with
     | Some cp, None, None -> k_copy resource cp
     | None, Some cr, None -> k_create resource cr
     | None, None, Some dup -> k_dup resource dup
     | _, _, _ -> Lwt.return "multi not implemented"
 
-  let run ({kind; do_} : Ast.Resource.t) : unit Lwt.t =
+  let run ({kind; do_} : Resource.t) : unit Lwt.t =
     let kind = Kubectl.kind_of_string_exn kind in
     let ops = List.map (to_kube kind) do_ in
     let yaml =
@@ -54,6 +56,6 @@ module Shell = struct
     in
     yaml >>= Lwt_io.print
 
-  let seq ({resources} : Ast.t) : unit Lwt.t =
+  let seq ({resources} : Template.Types.t) : unit Lwt.t =
     Lwt.join (List.map run resources)
 end

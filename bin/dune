@@ -1,4 +1,4 @@
 (executable
-  (name main)
-  (public_name re-apply)
-  (libraries lib))
+ (name rapply)
+ (public_name rapply)
+ (libraries lib cmdliner))

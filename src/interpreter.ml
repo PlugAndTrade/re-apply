@@ -1,10 +1,24 @@
-module K8sModifers = struct
+module K8s = struct
   open Modifier.Json
 
   let name n json =
     update "metadata"
       (function
-        | Some m -> Some (update "namespace" (fun _ -> Some (`String n)) m)
+        | Some m -> Some (update "name" (fun _ -> Some (`String n)) m)
+        | None -> Some (`Assoc []))
+      json
+
+  let prefix_name prefix json =
+    update "metadata"
+      (function
+        | Some m ->
+            Some
+              (update "name"
+                 (function
+                   | Some (`String name) -> Some (`String (prefix ^ name))
+                   | Some s -> Some s
+                   | None -> None)
+                 m)
         | None -> Some (`Assoc []))
       json
 
@@ -19,20 +33,18 @@ module K8sModifers = struct
     let open Yojson.Basic in
     json |> Modifier.Json.get "items" |> Util.map f |> Util.to_list
 
+  let remove_fields path fields json =
+    List.fold_left
+      (fun acc field -> update_in ~f:(remove field) path acc)
+      json fields
+
   let normalize json =
-    let remove_in root json field =
-      update root
-        (function Some r -> Some (remove field r) | None -> None)
-        json
-    in
-    let root_fields = ["status"] in
-    let md_fields = ["selfLink"; "uuid"] in
-    let ann_fields = ["kubectl.kubernetes.io/last-appliend-configuration"] in
-    let j_root =
-      List.fold_left (fun j field -> remove field j) json root_fields
-    in
-    let js_md = List.fold_left (remove_in "metadata") j_root md_fields in
-    List.fold_left (remove_in "annotations") js_md ann_fields
+    List.fold_left (fun j field -> remove field j) json ["status"]
+    |> remove_fields ["metadata"]
+         ["selfLink"; "uid"; "creationTimestamp"; "resourceVersion"]
+    |> remove_fields
+         ["metadata"; "annotations"]
+         ["kubectl.kubernetes.io/last-applied-configuration"]
 end
 
 module Shell = struct
@@ -41,29 +53,37 @@ module Shell = struct
   open Command
   open Lwt.Infix
 
+  let get_modify ~f resource from where =
+    let get =
+      resource |> Kubectl.get ~ns:from
+      |> Kubectl.with_selectors [where]
+      |> Kubectl.with_output ~output:"json"
+    in
+    let _apply =
+      () |> Kubectl.apply
+      |> Kubectl.with_output ~output:"json"
+      |> Kubectl.with_file
+    in
+    let delimter = "---\n" in
+    let to_yaml item = item |> Ast.Conv.to_yaml |> Yaml.to_string_exn in
+    let modify item = item |> K8s.normalize |> f in
+    Command.read_a get >|= Yojson.Basic.from_string >|= K8s.map_items ~f:modify
+    >|= List.map to_yaml >|= String.concat delimter >>= Lwt_io.print
+
+  let k_copy resource ({from; where; to_; _} : Ast.Op.Copy.t) =
+    get_modify ~f:(K8s.namespace to_) resource from where
+
+  let k_dup resource ({name_prefix; from; where} : Ast.Op.Duplicate.t) =
+    get_modify ~f:(K8s.prefix_name name_prefix) resource from where
+
   let to_kube (resource : Kubectl.kind) ({copy; create; duplicate} : Ast.Op.t)
       : unit Lwt.t =
     match (copy, create, duplicate) with
-    | Some {from; where; to_; _}, None, None ->
-        let get =
-          resource |> Kubectl.get ~ns:from
-          |> Kubectl.with_selectors [where]
-          |> Kubectl.with_output ~output:"json"
-        in
-        let _apply =
-          () |> Kubectl.apply
-          |> Kubectl.with_output ~output:"json"
-          |> Kubectl.with_file
-        in
-        Command.read_a get >|= Yojson.Basic.from_string
-        >|= K8sModifers.map_items ~f:(fun item ->
-                item |> K8sModifers.normalize |> K8sModifers.namespace to_ )
-        >|= List.map (fun item ->
-                item |> Ast.Conv.to_yaml |> Yaml.to_string_exn )
-        >|= String.concat "---"
-        (* >>= (Command.rw_string apply) *)
-        >>= Lwt_io.print
-    | _, _, _ -> Lwt.return ()
+    | Some cp, None, None -> k_copy resource cp
+    | None, Some cr, None ->
+        Lwt.return "Create not implemented" >>= Lwt_io.print
+    | None, None, Some dup -> k_dup resource dup
+    | _, _, _ -> Lwt.return "multi not implemented" >>= Lwt_io.print
 
   let run (resource : Ast.Resource.t) : t =
     let _kind = Kubectl.kind_of_string_exn resource.kind in

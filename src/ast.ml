@@ -53,5 +53,8 @@ let default () = {resources= []}
 let of_yaml path =
   let open R in
   Fpath.of_string path >>| OS.read_file >>= Yaml.yaml_of_string
-  >>= Yaml.to_json >>| Conv.to_yojson >>| of_yojson
-  >>| function Ok json -> json | Error _ -> default ()
+  >>= Yaml.to_json >>| Conv.to_yojson
+  >>= (fun json -> match of_yojson json with
+      | Ok json -> Rresult.R.return json
+      | Error e -> Rresult.Error (`Msg e)
+    )

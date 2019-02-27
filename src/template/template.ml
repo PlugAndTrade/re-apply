@@ -12,12 +12,17 @@ module Env = struct
 
   let to_json envs = `O (List.map (fun (k, v) -> (k, `String v)) envs)
 
-  let interpolate (_envs : t) (template : string) = template
+  let interpolate env template =
+    let json = to_json env in
+    let m_tmpl =  Mustache.of_string template in
+
+    Mustache.render m_tmpl json
 end
 
 let of_yaml path =
+  let args = (Env.add_arg Env.empty ("TEST", "TEST")) in
   let open R in
-  Fpath.of_string path >>| OS.read_file >>| Env.interpolate Env.empty
+  Fpath.of_string path >>| OS.read_file >>| Env.interpolate args
   >>= Yaml.yaml_of_string >>= Yaml.to_json >>| Conv.to_yojson
   >>= fun json ->
   match Types.of_yojson json with

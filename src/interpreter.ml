@@ -1,7 +1,6 @@
 module Shell = struct
   type t = Command.t
 
-  open Command
   open K8s
   open Lwt.Infix
 
@@ -22,7 +21,7 @@ module Shell = struct
   let k_copy resource ({from; where; to_; _} : Ast.Op.Copy.t) =
     get_modify ~f:(KSOMod.namespace to_) resource from where
 
-  let k_dup resource ({name_prefix; from; where} : Ast.Op.Duplicate.t) =
+  let k_dup resource ({name_prefix; from; where; _} : Ast.Op.Duplicate.t) =
     get_modify ~f:(KSOMod.prefix_name name_prefix) resource from where
 
   let k_create resource ({name} : Ast.Op.Create.t) =

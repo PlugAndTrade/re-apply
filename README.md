@@ -12,7 +12,7 @@ resources:
     do:
       - copy:
           from: "default"
-          where: "app == storefront"
+          where: "app == nginx"
           to: "$(GIT_BRANCH)"
           map:
             - op: "add"
@@ -29,15 +29,14 @@ resources:
     do:
       - duplicate:
           from: "default"
-          where: "app.kubernetes/part-of != storefront"
+          where: "app.kubernetes/part-of != upstream-service"
           map:
             - op: "add"
               path: "/spec/rules[*]/host"
-              value: "$(GIT_BRANCH)-preloaded.bergendahls.se"
+              value: "$(GIT_BRANCH)-example.com"
             - op: "replace"
               path: "/spec/rules[*]/host"
-              value: "$(GIT_BRANCH)-preloaded.bergendahls.se"
-
+              value: "$(GIT_BRANCH)-example.com"
 
 ```
 

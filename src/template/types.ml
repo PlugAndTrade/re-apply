@@ -14,7 +14,7 @@ module Op = struct
       { from: string
       ; where: string
       ; to_: string [@key "to"]
-      ; patch: Patch.t list }
+      ; patch: Patch.t list option [@default None] }
     [@@deriving yojson {strict= false}]
   end
 
@@ -22,7 +22,7 @@ module Op = struct
     type t =
       { from: string
       ; where: string
-      ; patch: Patch.t list
+      ; patch: Patch.t list option [@default None]
       ; name_prefix: string [@key "namePrefix"] }
     [@@deriving yojson {strict= false}]
   end

@@ -30,18 +30,19 @@ module Kube = struct
 
   let get_modify ~f resource from where patches =
     let get =
-      resource |> Kubectl.get ~ns:from
+      Kubectl.get ~ns:from resource
       |> Kubectl.with_selectors [where]
       |> Kubectl.with_output ~output:"json"
     in
     let to_yaml item = item |> Conv.to_yaml |> Yaml.to_string_exn in
     let modify item =
       let json = item |> KSO.normalize |> f in
-      let ps = List.map patch patches in
-      let patched =
-        List.fold_left (fun j f -> f j) (Conv.basic_to_safe json) ps
-      in
-      Yojson.Safe.to_basic patched
+      match patches with
+      | Some ps ->
+          List.map patch ps
+          |> List.fold_left (fun j f -> f j) (Conv.basic_to_safe json)
+          |> Yojson.Safe.to_basic
+      | None -> json
     in
     Command.read_a get >|= Yojson.Basic.from_string >|= KSO.map_items ~f:modify
     >|= List.map to_yaml >|= String.concat delimter

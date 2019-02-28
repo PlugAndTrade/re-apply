@@ -14,31 +14,46 @@ resources:
           from: "default"
           where: "app == nginx"
           to: "{{ GIT_BRANCH }}"
-          map:
+          patch:
             - op: "add"
               path: "/metadata/annotations/my-annotation"
               value: "value"
             - op: "replace"
               path: "/metadata/labels/app"
-              value: "foobar"
-            - op: "remove"
-              path: "/spec/template/containers/0/livenessProbe"
-              value: "foobar"
 
   - kind: "Ingress"
     do:
       - duplicate:
           from: "default"
           where: "app.kubernetes/part-of != upstream-service"
-          map:
+          patch:
             - op: "add"
-              path: "/spec/rules[*]/host"
+              path: "/spec/rules/0/host"
               value: "{{ GIT_BRANCH }}-example.com"
             - op: "replace"
               path: "/spec/rules[*]/host"
               value: "{{ GIT_BRANCH }}-example.com"
 
 ```
+
+### JSON patch
+
+Manifests can be patched using
+* Add
+
+``` json
+{"op": "add", "path": "/spec/metadata/annotations/foo", "value": "value"}
+```
+* Replace
+``` json
+{"op": "replace", "path": "/spec/metadata/labels/app", "value": "myapp"}
+``**
+* Remove
+** TODO **
+
+* Move
+** TODO **
+
 
 ### Interpolation
 

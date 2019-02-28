@@ -4,7 +4,7 @@ module Kind = struct
 end
 
 module Op = struct
-  module Transform = struct
+  module Patch = struct
     type t = {op: string; path: string; value: string}
     [@@deriving yojson {strict= false}]
   end
@@ -14,7 +14,7 @@ module Op = struct
       { from: string
       ; where: string
       ; to_: string [@key "to"]
-      ; map: Transform.t list }
+      ; patch: Patch.t list }
     [@@deriving yojson {strict= false}]
   end
 
@@ -22,7 +22,7 @@ module Op = struct
     type t =
       { from: string
       ; where: string
-      ; map: Transform.t list
+      ; patch: Patch.t list
       ; name_prefix: string [@key "namePrefix"] }
     [@@deriving yojson {strict= false}]
   end

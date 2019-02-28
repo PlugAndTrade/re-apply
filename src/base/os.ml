@@ -32,8 +32,9 @@ module Git = struct
 
   let git = Bos.Cmd.v "git"
 
-  let run cmd = match Bos.OS.Cmd.(run_out cmd |> to_lines) with
-    | Ok l -> List.fold_left (^) "" l
+  let run cmd =
+    match Bos.OS.Cmd.(run_out cmd |> to_lines) with
+    | Ok l -> List.fold_left ( ^ ) "" l
     | Error e -> ""
 
   let user () = run (git % "config" % "user.name")

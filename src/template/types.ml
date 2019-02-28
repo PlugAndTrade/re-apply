@@ -3,12 +3,12 @@ module Kind = struct
   [@@deriving yojson {strict= false}]
 end
 
-module Op = struct
-  module Patch = struct
-    type t = {op: string; path: string; value: string}
-    [@@deriving yojson {strict= false}]
-  end
+module Patch = struct
+  type t = {op: string; path: string; value: string}
+  [@@deriving yojson {strict= false}]
+end
 
+module Op = struct
   module Copy = struct
     type t =
       { from: string
@@ -43,6 +43,13 @@ module Resource = struct
   [@@deriving yojson {strict= false}]
 end
 
-type t = {resources: Resource.t list} [@@deriving yojson {strict= false}]
+module Local = struct
+  type t = {path: string; patch: Patch.t list option [@default None]}
+  [@@deriving yojson {strict= false}]
+end
 
-let default () = {resources= []}
+type t =
+  {resources: Resource.t list [@default []]; local: Local.t list [@default []]}
+[@@deriving yojson {strict= false}]
+
+let default () = {resources= []; local= []}

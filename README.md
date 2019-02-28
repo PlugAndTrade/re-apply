@@ -3,6 +3,15 @@
 ## Template
 
 ```yaml
+local:
+  - path: "./echoserver.deployment.yaml"
+    patch:
+      - op: "replace"
+        path: "/spec/template/spec/containers/0/image"
+        value: "gcr.io/google_containers/echoserver:{{ GIT_BRANCH }}"
+      - op: "replace"
+        path: "/metadata/namespace"
+        value: "{{ GIT_BRANCH }}"
 resources:
   - kind: "Namespace"
     do:

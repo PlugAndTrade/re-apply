@@ -21,7 +21,7 @@ module Ctx = struct
 end
 
 module Kube = struct
-  let patch ({op; path; value} : Op.Patch.t) =
+  let patch ({op; path; value} : Patch.t) =
     let open Base.Modifier in
     let p = JsonPatch.make_p ~value:(Some value) op path in
     match JsonPatch.from_patch p with
@@ -65,6 +65,28 @@ module Kube = struct
     Command.read_a create >|= Yojson.Basic.from_string >|= modify
 end
 
+module Local = struct
+  open R
+
+  let read_and_modify ({path; patch} : Local.t) : string Lwt.t =
+    let maybe_json =
+      Fpath.of_string path >>| Base.Os.read_file >>= Yaml.yaml_of_string
+      >>= Yaml.to_json >>| Conv.to_yojson
+    in
+    match (maybe_json, patch) with
+    | Ok json, Some ps ->
+        List.map Kube.patch ps
+        |> List.fold_left (fun j f -> f j) json
+        |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn
+        |> Lwt.return
+    | Ok j, _ ->
+        j |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn
+        |> Lwt.return
+    | Error (`Msg e), _ ->
+        failwith
+          (Format.sprintf "Local file conversion %s failed with %s" path e)
+end
+
 let to_kubetcl (resource : Kubectl.kind) ({copy; create; duplicate} : Op.t) :
     string Lwt.t =
   match (copy, create, duplicate) with
@@ -73,9 +95,14 @@ let to_kubetcl (resource : Kubectl.kind) ({copy; create; duplicate} : Op.t) :
   | None, None, Some dup -> Kube.dup resource dup
   | _, _, _ -> Lwt.return "multi not implemented"
 
-let run_op ({kind; do_} : Resource.t) : unit Lwt.t =
-  let kind = Kubectl.kind_of_string_exn kind in
-  let ops = List.map (to_kubetcl kind) do_ in
+let run_local local = List.map Local.read_and_modify local
+
+let run_op ({kind; do_} : Resource.t) : string Lwt.t list =
+  List.map (to_kubetcl (Kubectl.kind_of_string_exn kind)) do_
+
+let seq ({resources; local} : Template.Types.t) : unit Lwt.t =
+  let locals = run_local local in
+  let ops = locals @ List.flatten (List.map run_op resources) in
   let yaml =
     List.fold_left
       (fun acc op ->
@@ -83,9 +110,6 @@ let run_op ({kind; do_} : Resource.t) : unit Lwt.t =
       (Lwt.return "") ops
   in
   yaml >>= Lwt_io.print
-
-let seq ({resources} : Template.Types.t) : unit Lwt.t =
-  Lwt.join (List.map run_op resources)
 
 let run path =
   let open R in

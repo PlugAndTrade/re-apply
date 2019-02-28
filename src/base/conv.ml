@@ -20,3 +20,7 @@ let to_yaml (json : Yojson.Basic.json) : Yaml.value =
     | `Assoc l -> `O (List.map (fun (k, v) -> (k, fn v)) l)
   in
   fn json
+
+let basic_to_safe (json : Yojson.Basic.json) : Yojson.Safe.json =
+  (* todo *)
+  json |> Yojson.Basic.to_string |> Yojson.Safe.from_string

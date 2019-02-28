@@ -30,3 +30,46 @@ module Json = struct
 
   let get = Yojson.Basic.Util.member
 end
+
+module JsonPatch = struct
+  type path = string
+
+  type v = string
+
+  type patch =
+    {op: string; path: string; from: string option; value: string option}
+  [@@deriving yojson {strict= false}]
+
+  let make_p ?(from = None) ?(value = None) op path = {op; path; from; value}
+
+  type t =
+    | Add of (path * v)
+    | Remove of path
+    | Move of (path * path)
+    | Replace of (path * v)
+    | Test of path
+
+  let from_patch ({op; path; from; value} : patch) =
+    match (op, from, value) with
+    | "add", _, Some v -> Some (Add (path, v))
+    | "add", _, _ -> None
+    | "remove", _, _ -> Some (Remove path)
+    | "move", Some p, _ -> Some (Move (path, p))
+    | "move", _, _ -> None
+    | "replace", _, Some v -> Some (Replace (path, v))
+    | "replace", _, _ -> None
+    | "test", _, _ -> Some (Test path)
+    | _, _, _ -> None
+
+  module JQ = Json_query.Make (Json_repr.Yojson)
+
+  let patch t json =
+    match t with
+    | Add (path, v) ->
+        let p = Json_query.path_of_json_pointer path in
+        JQ.insert p (`String v) json
+    | Replace (path, v) ->
+        let p = Json_query.path_of_json_pointer path in
+        JQ.replace p (`String v) json
+    | _ -> json
+end

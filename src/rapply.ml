@@ -21,22 +21,36 @@ module Ctx = struct
 end
 
 module Kube = struct
-  let get_modify ~f resource from where =
+  let patch ({op; path; value} : Op.Patch.t) =
+    let open Base.Modifier in
+    let p = JsonPatch.make_p ~value:(Some value) op path in
+    match JsonPatch.from_patch p with
+    | Some patch -> JsonPatch.patch patch
+    | None -> failwith (Format.sprintf "The provided patch is invalid")
+
+  let get_modify ~f resource from where patches =
     let get =
       resource |> Kubectl.get ~ns:from
       |> Kubectl.with_selectors [where]
       |> Kubectl.with_output ~output:"json"
     in
     let to_yaml item = item |> Conv.to_yaml |> Yaml.to_string_exn in
-    let modify item = item |> KSO.normalize |> f in
+    let modify item =
+      let json = item |> KSO.normalize |> f in
+      let ps = List.map patch patches in
+      let patched =
+        List.fold_left (fun j f -> f j) (Conv.basic_to_safe json) ps
+      in
+      Yojson.Safe.to_basic patched
+    in
     Command.read_a get >|= Yojson.Basic.from_string >|= KSO.map_items ~f:modify
     >|= List.map to_yaml >|= String.concat delimter
 
-  let copy resource ({from; where; to_; _} : Op.Copy.t) =
-    get_modify ~f:(KSO.namespace to_) resource from where
+  let copy resource ({from; where; to_; patch} : Op.Copy.t) =
+    get_modify ~f:(KSO.namespace to_) resource from where patch
 
-  let dup resource ({name_prefix; from; where; _} : Op.Duplicate.t) =
-    get_modify ~f:(KSO.prefix_name name_prefix) resource from where
+  let dup resource ({name_prefix; from; where; patch} : Op.Duplicate.t) =
+    get_modify ~f:(KSO.prefix_name name_prefix) resource from where patch
 
   let create resource ({name} : Op.Create.t) =
     let create =

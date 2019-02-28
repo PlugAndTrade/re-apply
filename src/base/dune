@@ -1,4 +1,4 @@
 (library
  (name base)
  (public_name re-apply.base)
- (libraries bos rresult yaml yojson))
+ (libraries bos rresult yaml yojson ocplib-json-typed))

@@ -1,5 +1,20 @@
 # re-apply
 
+Template driven modifications to local & remote kubernetes manifests
+
+`re-apply` allows taking already existing kubernetes manifests, apply JSON
+patches and output all changes as a single `yaml` with all modified resources.
+
+This allows creating permutations of already existing resources using only a
+template and already existing kubernetes resources or manifests. 
+
+## Usage
+
+``` yaml
+re-apply mod -t ./path/to/template | kubectl apply -f -
+re-apply mod -t ./path/to/template | kubectl delete -f -
+```
+
 ## Template
 
 ```yaml
@@ -68,9 +83,10 @@ local:
 `resources` is used for fetching remote resources i.e from a cluster. The
 operations supported are `create`, `copy` & `duplicate`. 
 
-#### copy
+#### `copy`
 `copy` fetches a collection of `kind` matching the selector(s) provided in
-`where` and optionally applies the patch to the resources. This operation is 
+`where`, optionally applies the patch to the resources and copies the resource
+to the namespace provided in`to`
 ```yaml
 resources:
   - kind: Deployment
@@ -84,6 +100,32 @@ resources:
               path: /metdata/annotations/test
               value: test
 
+```
+#### `duplicate`
+Fetches a collection of `kind` matching the selector(s) provided in `where`,
+optionally applies the `patch` to the resource and copies the resource changing
+the `metadata.name` with the prefix provided in `namePrefix`
+
+``` yaml
+  - kind: Deployment
+    do:
+      - duplicate:
+          from: default
+          where: "test == test,app.kubernetes/belongs-to != re-apply"
+          namePrefix: "{{ GIT_BRANCH }}-"
+          patch:
+            - op: add
+              path: /metadata/annotation/test
+              value: "{{ GIT_BRANCH }}"
+```
+#### `create`
+Creates a resource 
+
+``` yaml
+- kind: Namespace
+  do:
+    - create: 
+        name: my-namespac-{{ GIT_BRANCH }}
 ```
 
 ### JSON patch

@@ -41,7 +41,8 @@ jobs:
       STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
       ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
       ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
-
+      CYGWIN_ROOT: $(System.Workfolder)\cygwin
+      CYGWIN_MIRROR: http://cygwin.mirror.constant.com
     steps:
       - script: |
           choco install cygwin --params="/InstallDir:%CYGWIN_ROOT%"

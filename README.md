@@ -8,7 +8,10 @@ local:
     patch:
       - op: "replace"
         path: "/spec/template/spec/containers/0/image"
-        value: "gcr.io/google_containers/echoserver:{{ GIT_BRANCH }}"
+        value: "gcr.io/google_containers/echoserver:1.5"
+      - op: "replace"
+        path: "/metadata/name"
+        value: "{{ GIT_BRANCH }}-{{ GIT_COMMIT }}"
       - op: "replace"
         path: "/metadata/namespace"
         value: "{{ GIT_BRANCH }}"
@@ -16,32 +19,70 @@ resources:
   - kind: "Namespace"
     do:
       - create:
-          name: "{{ GIT_BRANCH }}-{{ GIT_COMMIT }}"
+          name: "{{ GIT_BRANCH }}"
   - kind: "Deployment"
     do:
       - copy:
           from: "default"
-          where: "app == nginx"
-          to: "{{ GIT_BRANCH }}"
+          where: "run == echoserver,app.kubernetes/belongs-to != re-apply"
+          to: "test"
           patch:
             - op: "add"
-              path: "/metadata/annotations/my-annotation"
-              value: "value"
+              path: "/metadata/annotations/test"
+              value: "test-value"
+          patch:
             - op: "replace"
               path: "/metadata/labels/app"
-
+              value: "{{ GIT_USER }}"
   - kind: "Ingress"
     do:
       - duplicate:
           from: "default"
-          where: "app.kubernetes/part-of != upstream-service"
+          where: "test == test,app.kubernetes/belongs-to != re-apply"
+          namePrefix: "{{ GIT_BRANCH }}-"
           patch:
-            - op: "add"
-              path: "/spec/rules/0/host"
-              value: "{{ GIT_BRANCH }}-example.com"
             - op: "replace"
-              path: "/spec/rules[*]/host"
-              value: "{{ GIT_BRANCH }}-example.com"
+              path: "/spec/rules/0/host"
+              value: "{{ GIT_BRANCH }}.example.com"
+
+```
+
+### Local
+
+The `local` takes a file path and an optional array of operations and applies
+the patch to the manifest before inserting it into the output manifest.
+``` yaml
+local:
+  - path: "./path/to/manifest.yaml"
+    patch: 
+      - op: "replace"
+        path: "/metadata/labels/app"
+        value: "my-app"
+      - op: "add"
+        path: "/metadata/annotations/app"
+        value: "my-app"
+```
+
+### resources
+
+`resources` is used for fetching remote resources i.e from a cluster. The
+operations supported are `create`, `copy` & `duplicate`. 
+
+#### copy
+`copy` fetches a collection of `kind` matching the selector(s) provided in
+`where` and optionally applies the patch to the resources. This operation is 
+```yaml
+resources:
+  - kind: Deployment
+    do:
+      - copy:
+          from: default # from namespace
+          where: "app == echoserver" # label/field selector
+          to: test # target namespace
+          patch: 
+            - op: add
+              path: /metdata/annotations/test
+              value: test
 
 ```
 
@@ -56,13 +97,13 @@ Manifests can be patched using
 * Replace
 ``` json
 {"op": "replace", "path": "/spec/metadata/labels/app", "value": "myapp"}
-``**
+
+```
 * Remove
 ** TODO **
 
 * Move
 ** TODO **
-
 
 ### Interpolation
 

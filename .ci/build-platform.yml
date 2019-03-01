@@ -28,7 +28,7 @@ jobs:
       - script: "esy build"
         displayName: "esy build"
       # - script: "esy test"
-        displayName: "Test command"
+      #   displayName: "Test command"
       - script: "esy release"
         displayName: "esy release"
       - template: utils/publish-build-cache.yml

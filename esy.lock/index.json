@@ -43,7 +43,7 @@
       "overrides": [],
       "dependencies": [
         "refmterr@3.1.10@d41d8cd9", "ocaml@4.6.10@d41d8cd9",
-        "@opam/yojson@opam:1.5.0@890db858", "@opam/yaml@opam:1.0.0@5c60fed9",
+        "@opam/yojson@opam:1.5.0@890db858", "@opam/yaml@opam:1.0.0@fae07824",
         "@opam/rresult@opam:0.6.0@4b185e72",
         "@opam/ppx_deriving_yojson@opam:3.3@80aab5d8",
         "@opam/ocplib-json-typed@opam:0.7@2e82f051",
@@ -129,8 +129,8 @@
         "@opam/biniou@opam:1.2.0@c8516f18"
       ]
     },
-    "@opam/yaml@opam:1.0.0@5c60fed9": {
-      "id": "@opam/yaml@opam:1.0.0@5c60fed9",
+    "@opam/yaml@opam:1.0.0@fae07824": {
+      "id": "@opam/yaml@opam:1.0.0@fae07824",
       "name": "@opam/yaml",
       "version": "opam:1.0.0",
       "source": {

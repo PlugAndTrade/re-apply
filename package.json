@@ -6,7 +6,7 @@
   "esy": {
     "build": "refmterr dune build -p #{self.name}",
     "buildsInSource": "_build",
-    "release": { "bin": "re-apply", "includePackages": [ "root" ] }
+    "release": { "bin": "rapply", "includePackages": [ "root" ] }
   },
   "scripts": {
     "test": "esy x main.exe",

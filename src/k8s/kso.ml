@@ -45,7 +45,7 @@ let add_fields path fields json =
 let normalize json =
   List.fold_left (fun j field -> remove field j) json ["status"]
   |> remove_fields ["metadata"]
-       ["selfLink"; "uid"; "creationTimestamp"; "resourceVersion"]
+       ["selfLink"; "uid"; "creationTimestamp"; "resourceVersion"; "generation"]
   |> remove_fields
        ["metadata"; "annotations"]
        ["kubectl.kubernetes.io/last-applied-configuration"]

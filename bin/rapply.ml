@@ -27,15 +27,15 @@ let run path envs =
   Lwt_main.run p
 
 let cmd =
-  let envs =
-    let doc = "envs" in
-    Arg.(value & opt (list string) [] & info ["e"; "envs"] ~docv:"ENV" ~doc)
+  let vars =
+    let doc = "custom variables for interpolation on the form KEY=VALUE, separated by ','" in
+    Arg.(value & opt (list string) [] & info ["vars"] ~docv:"VARS" ~doc)
   in
   let path =
     let doc = "template path" in
     Arg.(value & pos 0 file "./" & info [] ~docv:"DIR" ~doc)
   in
-  ( Term.(const run $ path $ envs)
+  ( Term.(const run $ path $ vars)
   , Term.info "patch" ~doc:"Uses the template to patch the specified resources"
       ~sdocs:Manpage.s_common_options ~exits:Term.default_exits ~man:help )
 

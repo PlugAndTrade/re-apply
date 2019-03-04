@@ -1,18 +1,22 @@
 # re-apply
 
-Template driven modifications to local & remote kubernetes manifests
-
 `re-apply` allows taking already existing kubernetes manifests, apply JSON
-patches and output all changes as a single `yaml` with all modified resources.
+patches and output all changes as a single `yaml`.
 
 This allows creating permutations of already existing resources using only a
 template and already existing kubernetes resources or manifests. 
 
 ## Usage
 
-``` yaml
-re-apply mod -t ./path/to/template | kubectl apply -f -
-re-apply mod -t ./path/to/template | kubectl delete -f -
+```bash
+rapply patch ./path/to/template | kubectl apply -f -
+rapply patch ./path/to/template | kubectl delete -f -
+```
+
+* With custom interpolation variables
+
+```bash
+rapply patch ./path/to/template --vars="MY_KEY=MYVALUE,MY_OTHER_KEY=MYVALUE"
 ```
 
 ## Template
@@ -30,7 +34,7 @@ local:
       - op: "replace"
         path: "/metadata/namespace"
         value: "{{ GIT_BRANCH }}"
-resources:
+remote:
   - kind: "Namespace"
     do:
       - create:
@@ -78,9 +82,9 @@ local:
         value: "my-app"
 ```
 
-### resources
+### Remote
 
-`resources` is used for fetching remote resources i.e from a cluster. The
+`remote` is used for fetching remote resources i.e from a cluster. The
 operations supported are `create`, `copy` & `duplicate`. 
 
 #### `copy`
@@ -88,7 +92,7 @@ operations supported are `create`, `copy` & `duplicate`.
 `where`, optionally applies the patch to the resources and copies the resource
 to the namespace provided in`to`
 ```yaml
-resources:
+remote:
   - kind: Deployment
     do:
       - copy:
@@ -158,6 +162,24 @@ The following variables are available for interpolation in a template:
 | `GIT_COMMIT`                             | Latest git commit (`git rev-parse HEAD`)                | `26dfcdea7a022731a5c7bf1043a60cecf0bfc342`          |
 
 The template language used is mustache.
+
+Custom interpolation values are available via the `--vars` option. Ex:
+
+``` bash
+rapply patch ./template.yaml --vars "FOO=BAR,BAR=BAZ"
+```
+`FOO` and `BAR` can now be used inside the template:
+``` Yaml
+local:
+  - path: ./path/to/manifest.yaml
+    patch:
+      - op: add
+        path: /metadata/annotations/foo
+        value: {{ FOO }}
+      - op: add
+        path: /metadata/annotations/bar
+        value: {{ BAR }}
+```
 
 ## Usage
 

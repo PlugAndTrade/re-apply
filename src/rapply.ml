@@ -105,12 +105,12 @@ let to_kubetcl (resource : Kubectl.kind) ({copy; create; duplicate} : Op.t) :
 
 let run_local local = List.map Local.read_and_modify local
 
-let run_op ({kind; do_} : Resource.t) : string Lwt.t list =
+let run_op ({kind; do_} : Remote.t) : string Lwt.t list =
   List.map (to_kubetcl (Kubectl.kind_of_string_exn kind)) do_
 
-let seq ({resources; local} : Template.Types.t) : unit Lwt.t =
+let seq ({remote; local} : Template.Types.t) : unit Lwt.t =
   let locals = run_local local in
-  let ops = locals @ List.flatten (List.map run_op resources) in
+  let ops = locals @ List.flatten (List.map run_op remote) in
   let yaml =
     List.fold_left
       (fun acc op ->

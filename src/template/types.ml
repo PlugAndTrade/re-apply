@@ -38,7 +38,7 @@ module Op = struct
   [@@deriving yojson {strict= false}]
 end
 
-module Resource = struct
+module Remote = struct
   type t = {kind: string; do_: Op.t list [@key "do"]}
   [@@deriving yojson {strict= false}]
 end
@@ -49,7 +49,7 @@ module Local = struct
 end
 
 type t =
-  {resources: Resource.t list [@default []]; local: Local.t list [@default []]}
+  {remote: Remote.t list [@default []]; local: Local.t list [@default []]}
 [@@deriving yojson {strict= false}]
 
-let default () = {resources= []; local= []}
+let default () = {remote= []; local= []}

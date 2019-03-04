@@ -19,6 +19,17 @@ rapply patch ./path/to/template | kubectl delete -f -
 rapply patch ./path/to/template --vars="MY_KEY=MYVALUE,MY_OTHER_KEY=MYVALUE"
 ```
 
+### Docker
+
+``` bash
+docker run -v /path/to/template.yaml:/root/template.yaml v ~/.kube:/root/.kube
+--rm plugandtrade/rapply patch /root/template.yaml --env="MY_VAR=MY_VALUE"
+
+```
+
+**NOTE** Make sure any local files are present within the container if the
+`local` directive is used.
+
 ## Template
 
 ```yaml
@@ -181,7 +192,7 @@ local:
         value: {{ BAR }}
 ```
 
-## Usage
+## Developing
 
 You need Esy, you can install the beta using [npm][]:
 

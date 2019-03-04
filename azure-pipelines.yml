@@ -26,7 +26,7 @@ jobs:
   dependsOn:
       - Linux
       - MacOS
-      - Windows
+      # - Windows
   condition: succeeded()
   timeoutInMinutes: 0
   pool:

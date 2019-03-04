@@ -1,91 +1,39 @@
-name: Build npm release
-
-trigger:
-  - master
-
+name: $(Build.SourceVersion)
 jobs:
-  - template: .ci/build-platform.yml
-    parameters:
-      platform: Linux
-      vmImage: ubuntu-16.04
-      STAGING_DIRECTORY: /home/vsts/STAGING
-      STAGING_DIRECTORY_UNIX: /home/vsts/STAGING
-      ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i
-      ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source/i
+- job: Linux
+  timeoutInMinutes: 0
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - template: .ci/esy-build-steps.yml
 
-  - template: .ci/build-platform.yml
-    parameters:
-      platform: macOS
-      vmImage: macOS-10.13
-      STAGING_DIRECTORY: /Users/vsts/STAGING
-      STAGING_DIRECTORY_UNIX: /Users/vsts/STAGING
-      ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i
-      ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source/i
+- job: MacOS
+  timeoutInMinutes: 0
+  pool:
+    vmImage: 'macOS 10.13'
+  steps:
+  - template: .ci/esy-build-steps.yml
 
-  # - template: .ci/build-platform.yml
-  #   parameters:
-  #     platform: Windows
-  #     vmImage: vs2017-win2016
-  #     STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
-  #     STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
-  #     ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
-  #     ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
+# - job: Windows
+#   timeoutInMinutes: 0
+#   pool:
+#     vmImage: 'vs2017-win2016'
+#   steps:
+#   - template: esy-build-steps.yml
 
-  # - job: Windows
-  #   pool:
-  #     vmImage: vs2017-win2016
-  #     demands: node.js
-  #   timeoutInMinutes: 120 # This is mostly for Windows
-  #   variables:
-  #     STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
-  #     STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
-  #     ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
-  #     ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
-  #     CYGWIN_ROOT: $(System.Workfolder)\cygwin
-  #     CYGWIN_MIRROR: http://cygwin.mirror.constant.com
-  #   steps:
-  #     - script: |
-  #         choco install cygwin --params="/InstallDir:%CYGWIN_ROOT%"
-  #     - script: |
-  #         %CYGWIN_ROOT%\cygwinsetup.exe -qnNdO -R "%CYGWIN_ROOT%" -s "%CYGWIN_MIRROR%" -g -P ^
-  #         curl,^
-  #         diff,^
-  #         diffutils,^
-  #         git,^
-  #         m4,^
-  #         make,^
-  #         patch,^
-  #         perl,^
-  #         rsync,^
-  #         mingw64-x86_64-gcc-core,^
-  #         unzip
-  #     - script: |
-  #         set PATH=%CYGWIN_ROOT%\bin;%SYSTEMROOT%\system32
-  #     - template: .ci/utils/use-node.yml
-  #     - template: .ci/utils/use-esy.yml
-  #     - template: .ci/utils/restore-build-cache.yml
-  #     - script: "esy install"
-  #       displayName: "esy install"
-  #     - script: "esy build"
-  #       displayName: "esy build"
-  #     - script: "esy release"
-  #       displayName: "esy release"
-  #     - template: .ci/utils/publish-build-cache.yml
-  #     - task: PublishBuildArtifacts@1
-  #       displayName: "Publish Artifact: windows"
-  #       inputs:
-  #         PathtoPublish: "_release"
-  #         ArtifactName: windows
-
-  # This job is kept here as we want to have the platform names in the same file
-  - job: Release
-    displayName: Release
-    dependsOn:
+- job: Release
+  displayName: Release
+  dependsOn:
       - Linux
-      - macOS
-      # - Windows
-    pool:
-      vmImage: macOS-10.13
-      demands: node.js
-    steps:
-      - template: .ci/cross-release.yml
+      - MacOS
+      - Windows
+  condition: succeeded()
+  timeoutInMinutes: 0
+  pool:
+     vmImage: ubuntu-16.04
+  steps:
+    - task: PublishBuildArtifacts@1
+      displayName: 'Release Package'
+      inputs:
+          PathtoPublish: '.'
+          ArtifactName: npm-package

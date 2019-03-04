@@ -18,22 +18,26 @@ let default_cmd =
     ret (const (`Help (`Pager, None))))
   , Term.info "rapply" ~version:"0.0" ~doc ~sdocs ~exits ~man )
 
-let run path =
+let run path envs =
   let p =
-    match Lib.Rapply.run path with
+    match Lib.Rapply.run path envs with
     | Ok p -> p
     | Error (`Msg e) -> Lwt_io.print (Format.sprintf "Failed with %s" e)
   in
   Lwt_main.run p
 
 let cmd =
+  let envs =
+    let doc = "envs" in
+    Arg.(value & opt (list string) [] & info ["e"; "envs"] ~docv:"ENV" ~doc)
+  in
   let path =
     let doc = "template path" in
-    Arg.(value & opt file "./" & info ["t"; "template"] ~docv:"DIR" ~doc)
+    Arg.(value & pos 0 file "./" & info [] ~docv:"DIR" ~doc)
   in
-  ( Term.(const run $ path)
-  , Term.info "mod" ~doc:"run template doc" ~sdocs:Manpage.s_common_options
-      ~exits:Term.default_exits ~man:help )
+  ( Term.(const run $ path $ envs)
+  , Term.info "patch" ~doc:"Uses the template to patch the specified resources"
+      ~sdocs:Manpage.s_common_options ~exits:Term.default_exits ~man:help )
 
 let cmds = [cmd]
 

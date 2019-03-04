@@ -9,15 +9,23 @@ let delimter = "---\n"
 module Ctx = struct
   type t = {template_path: string; env: Template.Env.t}
 
-  let make path =
+  let make path envs =
     let open Template in
-    let vars =
+    let default_vars =
       [ ("GIT_USER", Base.Os.Git.user ())
       ; ("GIT_BRANCH", Base.Os.Git.current_branch ())
       ; ("GIT_COMMIT", Base.Os.Git.current_commit ()) ]
     in
-    let env = List.fold_left Env.add_arg Env.empty vars in
-    {template_path= path; env}
+    let vars =
+      envs
+      |> List.map (fun e ->
+             match String.split_on_char '=' e with
+             | [k; v] -> (k, v)
+             | _ -> ("", "") )
+      |> List.filter (fun (k, v) -> k != "")
+    in
+    let env = List.fold_left Env.add_arg Env.empty (vars @ default_vars) in
+    {template_path=path; env}
 end
 
 module Kube = struct
@@ -111,7 +119,7 @@ let seq ({resources; local} : Template.Types.t) : unit Lwt.t =
   in
   yaml >>= Lwt_io.print
 
-let run path =
+let run path envs =
   let open R in
-  let ctx = Ctx.make path in
+  let ctx = Ctx.make path envs in
   Template.of_yaml ctx.template_path ~env:ctx.env >>| seq

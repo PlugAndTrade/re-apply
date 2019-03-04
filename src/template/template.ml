@@ -10,6 +10,10 @@ module Env = struct
 
   let to_json envs = `O (List.map (fun (k, v) -> (k, `String v)) envs)
 
+  let pp t =
+    let fmt = Format.sprintf "key: %s value: %s" in
+    t |> List.map (fun (k, v) -> fmt k v) |> String.concat "\n"
+
   let interpolate env template =
     let json = to_json env in
     let m_tmpl = Mustache.of_string template in

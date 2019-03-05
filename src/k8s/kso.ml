@@ -49,6 +49,7 @@ let normalize json =
   |> remove_fields
        ["metadata"; "annotations"]
        ["kubectl.kubernetes.io/last-applied-configuration"]
+  |> remove_fields ["spec"] ["clusterIP"]
   |> update_in ~f:(assign "labels" (`Assoc [])) ["metadata"]
   |> add_fields ["metadata"; "labels"]
        [("app.kubernetes/belongs-to", `String "re-apply")]

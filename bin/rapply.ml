@@ -28,7 +28,10 @@ let run path envs =
 
 let cmd =
   let vars =
-    let doc = "custom variables for interpolation on the form KEY=VALUE, separated by ','" in
+    let doc =
+      "custom variables for interpolation on the form KEY=VALUE, separated by \
+       ','"
+    in
     Arg.(value & opt (list string) [] & info ["vars"] ~docv:"VARS" ~doc)
   in
   let path =

@@ -3,8 +3,7 @@
 `re-apply` allows taking already existing kubernetes manifests, apply JSON
 patches and output all changes as a single `yaml`.
 
-This allows creating permutations of already existing resources using only a
-template and already existing kubernetes resources or manifests. 
+This allows creating permutations of local or remote manifests using only a template
 
 ## Usage
 
@@ -23,7 +22,7 @@ rapply patch ./path/to/template --vars="MY_KEY=MYVALUE,MY_OTHER_KEY=MYVALUE"
 
 ``` bash
 docker run -v /path/to/template.yaml:/root/template.yaml v ~/.kube:/root/.kube
---rm plugandtrade/rapply patch /root/template.yaml --env="MY_VAR=MY_VALUE"
+--rm plugandtrade/rapply patch /root/template.yaml --vars="MY_VAR=MY_VALUE"
 
 ```
 
@@ -54,7 +53,8 @@ remote:
     do:
       - copy:
           from: "default"
-          where: "run == echoserver,app.kubernetes/belongs-to != re-apply"
+          where: "app.kubernetes/belongs-to != re-apply"
+          whereField: "metadata.name=echoserver"
           to: "test"
           patch:
             - op: "add"
@@ -100,7 +100,7 @@ operations supported are `create`, `copy` & `duplicate`.
 
 #### `copy`
 `copy` fetches a collection of `kind` matching the selector(s) provided in
-`where`, optionally applies the patch to the resources and copies the resource
+`where|whereField`, optionally applies the patch to the resources and copies the resource
 to the namespace provided in`to`
 ```yaml
 remote:
@@ -117,7 +117,7 @@ remote:
 
 ```
 #### `duplicate`
-Fetches a collection of `kind` matching the selector(s) provided in `where`,
+Fetches a collection of `kind` matching the selector(s) provided in `where|whereField`,
 optionally applies the `patch` to the resource and copies the resource changing
 the `metadata.name` with the prefix provided in `namePrefix`
 

@@ -93,7 +93,7 @@ module Local = struct
       Fpath.of_string path >>| Base.Os.read_file >>= Yaml.yaml_of_string
       >>= Yaml.to_json >>| Conv.to_yojson
     in
-    let encode j = j |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn ~scalar_style: `Double_quoted in
+    let encode j = j |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn ~scalar_style: `Any in
     match (maybe_json, patch) with
     | Ok json, Some ps ->
         List.map Kube.patch ps

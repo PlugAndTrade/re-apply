@@ -27,6 +27,9 @@
     "ocaml": "~4.6.0",
     "refmterr": "^3.0.0"
   },
+  "resolutions": {
+    "**/@opam/sexplib": "v0.11.0"
+  },
   "devDependencies": {
     "@opam/merlin": "^3.0.3",
     "ocaml": "~4.6.0",

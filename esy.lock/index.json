@@ -1,5 +1,5 @@
 {
-  "checksum": "a4e14518ad43492a429a91a528d93003",
+  "checksum": "1a14a0b168371e097caf6c7c39412b02",
   "root": "re-apply@link:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#d488cd9321cd5036bd36ec96744ce78c5d45fc49@d41d8cd9": {
@@ -203,8 +203,8 @@
         "@opam/base-threads@opam:base@36803084"
       ]
     },
-    "@opam/uri@opam:2.2.0@8db9cce1": {
-      "id": "@opam/uri@opam:2.2.0@8db9cce1",
+    "@opam/uri@opam:2.2.0@dfca6d0f": {
+      "id": "@opam/uri@opam:2.2.0@dfca6d0f",
       "name": "@opam/uri",
       "version": "opam:2.2.0",
       "source": {
@@ -486,8 +486,8 @@
       ],
       "devDependencies": [ "ocaml@4.6.10@d41d8cd9" ]
     },
-    "@opam/ppxlib@opam:0.5.0@41d8dd4d": {
-      "id": "@opam/ppxlib@opam:0.5.0@41d8dd4d",
+    "@opam/ppxlib@opam:0.5.0@674193ca": {
+      "id": "@opam/ppxlib@opam:0.5.0@674193ca",
       "name": "@opam/ppxlib",
       "version": "opam:0.5.0",
       "source": {
@@ -590,14 +590,14 @@
       },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.6.10@d41d8cd9", "@opam/ppxlib@opam:0.5.0@41d8dd4d",
+        "ocaml@4.6.10@d41d8cd9", "@opam/ppxlib@opam:0.5.0@674193ca",
         "@opam/ocaml-migrate-parsetree@opam:1.2.0@5b3aa0d3",
         "@opam/jbuilder@opam:transition@58bdfe0a",
         "@opam/base@opam:v0.11.1@0e54024e",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@4.6.10@d41d8cd9", "@opam/ppxlib@opam:0.5.0@41d8dd4d",
+        "ocaml@4.6.10@d41d8cd9", "@opam/ppxlib@opam:0.5.0@674193ca",
         "@opam/ocaml-migrate-parsetree@opam:1.2.0@5b3aa0d3",
         "@opam/base@opam:v0.11.1@0e54024e"
       ]
@@ -739,11 +739,11 @@
       },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.6.10@d41d8cd9", "@opam/uri@opam:2.2.0@8db9cce1",
+        "ocaml@4.6.10@d41d8cd9", "@opam/uri@opam:2.2.0@dfca6d0f",
         "@opam/dune@opam:1.7.3@72aad784", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@4.6.10@d41d8cd9", "@opam/uri@opam:2.2.0@8db9cce1"
+        "ocaml@4.6.10@d41d8cd9", "@opam/uri@opam:2.2.0@dfca6d0f"
       ]
     },
     "@opam/ocamlformat@opam:0.8@0c6fd6c5": {

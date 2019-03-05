@@ -6,6 +6,10 @@ jobs:
     vmImage: 'Ubuntu 16.04'
   steps:
   - template: .ci/esy-build-steps.yml
+  - task: PublishBuildArtifacts@1
+    inputs:
+      artifactName: 'vendor-linux-rapply.exe'
+      pathToPublish: '_build/default/bin/rapply.exe'
 
 - job: MacOS
   timeoutInMinutes: 0
@@ -13,6 +17,10 @@ jobs:
     vmImage: 'macOS 10.13'
   steps:
   - template: .ci/esy-build-steps.yml
+  - task: PublishBuildArtifacts@1
+    inputs:
+      artifactName: 'vendor-darwin-rapply.exe'
+      pathToPublish: '_build/default/bin/rapply.exe'
 
 # - job: Windows
 #   timeoutInMinutes: 0
@@ -32,8 +40,32 @@ jobs:
   pool:
      vmImage: ubuntu-16.04
   steps:
-    - task: PublishBuildArtifacts@1
-      displayName: 'Release Package'
+    - task: DownloadBuildArtifacts@0
+      displayName: download osx binary
       inputs:
-          PathtoPublish: '.'
-          ArtifactName: npm-package
+        artifactName: 'vendor-darwin-rapply.exe'
+        downloadPath: .
+    - script: cp -R vendor-darwin-rapply.exe/rapply.exe dist/vendor-darwin
+      displayName: copy osx binary
+    - task: DownloadBuildArtifacts@0
+      displayName: download linux binary
+      inputs:
+        artifactName: 'vendor-linux-rapply.exe'
+        downloadPath: .
+    - script: cp -R vendor-linux-rapply.exe/rapply.exe dist/vendor-linux
+      displayName: copy linux binary
+  # - task: DownloadBuildArtifacts@0
+  #   displayName: download windows binary
+  #   inputs:
+  #     artifactName: 'vendor-win32-rapply.exe'
+  #     downloadPath: .
+  # - script: cp -R vendor-win32-rapply.exe/rapply.exe dist/vendor-win32
+  #   displayName: copy windows binary
+    - script: chmod +x dist/vendor-*/*.exe
+      displayName: add executable permissions
+    - script: "cp -R dist rapply && tar -czf rapply.tgz rapply"
+      displayName: create *.tgz to keep permissions
+    - task: PublishBuildArtifacts@1
+      inputs:
+        artifactName: rapply.tgz
+        pathToPublish: rapply.tgz

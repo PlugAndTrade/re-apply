@@ -61,7 +61,7 @@ jobs:
   #     downloadPath: .
   # - script: cp -R vendor-win32-rapply.exe/rapply.exe dist/vendor-win32
   #   displayName: copy windows binary
-    - script: chmod +x dist/vendor-*/*.exe
+    - script: chmod +x dist/*/*.exe
       displayName: add executable permissions
     - script: "cp -R dist rapply && tar -czf rapply.tgz rapply"
       displayName: create *.tgz to keep permissions

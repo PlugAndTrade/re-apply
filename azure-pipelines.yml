@@ -45,7 +45,7 @@ jobs:
       inputs:
         artifactName: 'vendor-darwin-rapply.exe'
         downloadPath: .
-    - script: cp -R vendor-darwin-rapply.exe/rapply.exe dist/darwin
+    - script: cp -R vendor-darwin-rapply.exe/rapply.exe dist/darwin/rapply-darwin.exe
       displayName: copy osx binary
     - task: DownloadBuildArtifacts@0
       displayName: download linux binary

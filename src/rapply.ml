@@ -22,10 +22,10 @@ module Ctx = struct
              match String.split_on_char '=' e with
              | [k; v] -> (k, v)
              | _ -> ("", "") )
-      |> List.filter (fun (k, v) -> k != "")
+      |> List.filter (fun (k, _) -> k != "")
     in
     let env = List.fold_left Env.add_arg Env.empty (vars @ default_vars) in
-    {template_path=path; env}
+    {template_path= path; env}
 end
 
 module Kube = struct
@@ -36,12 +36,20 @@ module Kube = struct
     | Some patch -> JsonPatch.patch patch
     | None -> failwith (Format.sprintf "The provided patch is invalid")
 
-  let get_modify ~f resource from where patches =
+  let get_modify ~f resource from where where_field patches =
+    let get = Kubectl.get ~ns:from resource in
     let get =
-      Kubectl.get ~ns:from resource
-      |> Kubectl.with_selectors [where]
-      |> Kubectl.with_output ~output:"json"
+      match (where, where_field) with
+      | Some where, None -> get |> Kubectl.with_selectors [where]
+      | None, Some where_field ->
+          get |> Kubectl.with_field_selectors [where_field]
+      | Some where, Some where_field ->
+          get
+          |> Kubectl.with_selectors [where]
+          |> Kubectl.with_field_selectors [where_field]
+      | None, None -> get
     in
+    let get_with_output = get |> Kubectl.with_output ~output:"json" in
     let to_yaml item = item |> Conv.to_yaml |> Yaml.to_string_exn in
     let modify item =
       let json = item |> KSO.normalize |> f in
@@ -52,14 +60,18 @@ module Kube = struct
           |> Yojson.Safe.to_basic
       | None -> json
     in
-    Command.read_a get >|= Yojson.Basic.from_string >|= KSO.map_items ~f:modify
+    Command.read_a get_with_output
+    >|= Yojson.Basic.from_string >|= KSO.map_items ~f:modify
     >|= List.map to_yaml >|= String.concat delimter
 
-  let copy resource ({from; where; to_; patch} : Op.Copy.t) =
-    get_modify ~f:(KSO.namespace to_) resource from where patch
+  let copy resource ({from; where; where_field; to_; patch} : Op.Copy.t) =
+    get_modify ~f:(KSO.namespace to_) resource from where where_field patch
 
-  let dup resource ({name_prefix; from; where; patch} : Op.Duplicate.t) =
-    get_modify ~f:(KSO.prefix_name name_prefix) resource from where patch
+  let dup resource
+      ({name_prefix; from; where; where_field; patch} : Op.Duplicate.t) =
+    get_modify
+      ~f:(KSO.prefix_name name_prefix)
+      resource from where where_field patch
 
   let create resource ({name} : Op.Create.t) =
     let create =
@@ -81,15 +93,14 @@ module Local = struct
       Fpath.of_string path >>| Base.Os.read_file >>= Yaml.yaml_of_string
       >>= Yaml.to_json >>| Conv.to_yojson
     in
+    let encode j = j |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn ~scalar_style: `Double_quoted in
     match (maybe_json, patch) with
     | Ok json, Some ps ->
         List.map Kube.patch ps
         |> List.fold_left (fun j f -> f j) json
-        |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn
+        |> encode
         |> Lwt.return
-    | Ok j, _ ->
-        j |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn
-        |> Lwt.return
+    | Ok j, _ -> j |> encode |> Lwt.return
     | Error (`Msg e), _ ->
         failwith
           (Format.sprintf "Local file conversion %s failed with %s" path e)
@@ -101,7 +112,8 @@ let to_kubetcl (resource : Kubectl.kind) ({copy; create; duplicate} : Op.t) :
   | Some cp, None, None -> Kube.copy resource cp
   | None, Some cr, None -> Kube.create resource cr
   | None, None, Some dup -> Kube.dup resource dup
-  | _, _, _ -> Lwt.return "multi not implemented"
+  | None, None, None -> failwith (Format.sprintf "At least one 'do' operation required for %s" (Kubectl.kind_to_string resource))
+  | _, _, _ -> failwith "Multiple 'do' operations not supported"
 
 let run_local local = List.map Local.read_and_modify local
 

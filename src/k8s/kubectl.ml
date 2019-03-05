@@ -42,4 +42,7 @@ let with_output ?(output = "json") cmd = cmd % ("-o=" ^ output)
 
 let with_selectors selectors cmd = cmd % ("-l=" ^ String.concat "," selectors)
 
+let with_field_selectors selectors cmd =
+  cmd % ("--field-selector=" ^ String.concat "," selectors)
+
 let dry_run cmd = cmd % "--dry-run"

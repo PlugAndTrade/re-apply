@@ -12,7 +12,8 @@ module Op = struct
   module Copy = struct
     type t =
       { from: string
-      ; where: string
+      ; where: string option [@default None]
+      ; where_field: string option [@key "whereField"] [@default None]
       ; to_: string [@key "to"]
       ; patch: Patch.t list option [@default None] }
     [@@deriving yojson {strict= false}]
@@ -21,7 +22,8 @@ module Op = struct
   module Duplicate = struct
     type t =
       { from: string
-      ; where: string
+      ; where: string option [@default None]
+      ; where_field: string option [@key "whereField"] [@default None]
       ; patch: Patch.t list option [@default None]
       ; name_prefix: string [@key "namePrefix"] }
     [@@deriving yojson {strict= false}]

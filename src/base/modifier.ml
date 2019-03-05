@@ -34,10 +34,10 @@ end
 module JsonPatch = struct
   type path = string
 
-  type v = string
+  type v = Yojson.Safe.json
 
   type patch =
-    {op: string; path: string; from: string option; value: string option}
+    {op: string; path: string; from: string option; value: v option}
   [@@deriving yojson {strict= false}]
 
   let make_p ?(from = None) ?(value = None) op path = {op; path; from; value}
@@ -67,9 +67,9 @@ module JsonPatch = struct
     match t with
     | Add (path, v) ->
         let p = Json_query.path_of_json_pointer path in
-        JQ.insert p (`String v) json
+        JQ.insert p v json
     | Replace (path, v) ->
         let p = Json_query.path_of_json_pointer path in
-        JQ.replace p (`String v) json
+        JQ.replace p v json
     | _ -> json
 end

@@ -4,7 +4,7 @@ open K8s
 open Lwt.Infix
 module R = Rresult.R
 
-let delimter = "---\n"
+let delimter = "\n---\n"
 
 module Ctx = struct
   type t = {template_path: string; env: Template.Env.t}
@@ -50,7 +50,7 @@ module Kube = struct
       | None, None -> get
     in
     let get_with_output = get |> Kubectl.with_output ~output:"json" in
-    let to_yaml item = item |> Conv.to_yaml |> Yaml.to_string_exn in
+    let encode item = item |> Yojson.Basic.pretty_to_string in
     let modify item =
       let json = item |> KSO.normalize |> f in
       match patches with
@@ -62,7 +62,7 @@ module Kube = struct
     in
     Command.read_a get_with_output
     >|= Yojson.Basic.from_string >|= KSO.map_items ~f:modify
-    >|= List.map to_yaml >|= String.concat delimter
+    >|= List.map encode >|= String.concat delimter
 
   let copy resource ({from; where; where_field; to_; patch} : Op.Copy.t) =
     get_modify ~f:(KSO.namespace to_) resource from where where_field patch
@@ -80,7 +80,7 @@ module Kube = struct
       |> Kubectl.dry_run
     in
     let modify json =
-      json |> KSO.normalize |> Conv.to_yaml |> Yaml.to_string_exn
+      json |> KSO.normalize |> Yojson.Basic.pretty_to_string
     in
     Command.read_a create >|= Yojson.Basic.from_string >|= modify
 end
@@ -93,7 +93,7 @@ module Local = struct
       Fpath.of_string path >>| Base.Os.read_file >>= Yaml.yaml_of_string
       >>= Yaml.to_json >>| Conv.to_yojson
     in
-    let encode j = j |> Yojson.Safe.to_basic |> Conv.to_yaml |> Yaml.to_string_exn ~scalar_style: `Any in
+    let encode j = j |> Yojson.Safe.to_basic |> Yojson.Basic.pretty_to_string in
     match (maybe_json, patch) with
     | Ok json, Some ps ->
         List.map Kube.patch ps

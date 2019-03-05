@@ -4,7 +4,7 @@ module Kind = struct
 end
 
 module Patch = struct
-  type t = {op: string; path: string; value: string}
+  type t = {op: string; path: string; value: Yojson.Safe.json}
   [@@deriving yojson {strict= false}]
 end
 

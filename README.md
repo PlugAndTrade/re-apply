@@ -1,7 +1,7 @@
 # re-apply
 
 `re-apply` allows taking already existing kubernetes manifests, apply JSON
-patches and output all changes as a single `yaml`.
+patches and output all changes as a single manifest.
 
 This allows creating permutations of local or remote manifests using only a template
 
